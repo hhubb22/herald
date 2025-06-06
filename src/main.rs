@@ -2,7 +2,8 @@ mod socket_manager;
 
 use bytes::{BufMut, Bytes, BytesMut};
 use clap::Parser;
-use dhcproto::{v4, Encodable, Encoder};
+use dhcproto::{v4, Encodable, Encoder, v4::OptionCode};
+use rand::Rng as _;
 use std::error::Error as StdError;
 use std::num::ParseIntError;
 use tokio::fs;
@@ -34,13 +35,36 @@ fn parse_mac_address(mac_str: &str) -> Result<Bytes, ParseIntError> {
 /// Constructs a DHCP Discover message.
 fn build_dhcp_discover(mac_addr: &Bytes) -> Result<Vec<u8>, Box<dyn StdError>> {
     let mut msg = v4::Message::default();
+    let xid = rand::rng().random_range(0..=u32::MAX);
     msg.set_opcode(v4::Opcode::BootRequest)
         .set_chaddr(mac_addr)
         .set_htype(v4::HType::Eth) // Ethernet
         .set_hops(0)
-        .set_xid(0x12345678) // Transaction ID
+        .set_xid(xid) // Transaction ID
         .set_secs(0)
         .set_flags(v4::Flags::default().set_broadcast());
+
+        // Add DHCP Message Type Option (53) - DHCPDISCOVER (1)
+        msg.opts_mut()
+        .insert(v4::DhcpOption::MessageType(v4::MessageType::Discover));
+
+    // Add Client Identifier Option (61)
+    // Using htype 1 (Ethernet) followed by the MAC address
+    let mut client_id_data = BytesMut::new();
+    client_id_data.put_u8(1); // htype Ethernet
+    client_id_data.extend_from_slice(mac_addr);
+    msg.opts_mut().insert(v4::DhcpOption::ClientIdentifier(
+        client_id_data.freeze().to_vec(),
+    ));
+
+    // Add Parameter Request List Option (55)
+    msg.opts_mut().insert(v4::DhcpOption::ParameterRequestList(vec![
+        OptionCode::SubnetMask,         // 1
+        OptionCode::Router,             // 3
+        OptionCode::DomainNameServer,   // 6
+        OptionCode::DomainName,         // 15
+    ]));
+
 
     let mut buffer = Vec::new();
     let mut encoder = Encoder::new(&mut buffer);
