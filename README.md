@@ -1,7 +1,5 @@
 # herald
 
-# herald
-
 A DHCPv4 client written in Rust, currently under development. It aims to implement the full DORA (Discover, Offer, Request, Acknowledge) process to obtain an IP lease from a DHCP server. This project demonstrates asynchronous network programming with Tokio, DHCP message construction, and low-level socket manipulation for network interface binding on Linux systems.
 
 **Note:** This client partially implements the DHCPv4 protocol. Some features, like the completion of the Requesting/Bound states and automatic network configuration, are still in progress.
