@@ -1,5 +1,4 @@
-use std::io;
-use std::net::UdpSocket as StdUdpSocket;
+use std::{io, net::UdpSocket as StdUdpSocket};
 use thiserror::Error;
 use tokio::net::UdpSocket as TokioUdpSocket;
 
@@ -60,10 +59,14 @@ pub fn new_tokio_socket_bound_to_device(
         Socket::new(Domain::IPV4, Type::DGRAM, None).map_err(SocketError::CreateSocket)?;
 
     // Set `SO_BROADCAST`. This is required for sending broadcast messages.
-    socket2.set_broadcast(true).map_err(SocketError::SetBroadcast)?;
+    socket2
+        .set_broadcast(true)
+        .map_err(SocketError::SetBroadcast)?;
 
     // Set `SO_REUSEADDR`. Allows binding to an address that is already in use.
-    socket2.set_reuse_address(true).map_err(SocketError::SetReuseAddress)?;
+    socket2
+        .set_reuse_address(true)
+        .map_err(SocketError::SetReuseAddress)?;
 
     // Set `SO_BINDTODEVICE`. This is an unsafe raw syscall.
     // It is safe here because we use a valid file descriptor and correct parameters.
@@ -89,7 +92,9 @@ pub fn new_tokio_socket_bound_to_device(
 
     // Convert to a standard socket, then into a Tokio socket.
     let std_socket: StdUdpSocket = socket2.into();
-    std_socket.set_nonblocking(true).map_err(SocketError::SetNonBlocking)?;
+    std_socket
+        .set_nonblocking(true)
+        .map_err(SocketError::SetNonBlocking)?;
     TokioUdpSocket::from_std(std_socket).map_err(SocketError::ConvertToTokio)
 }
 
