@@ -1,5 +1,5 @@
 use clap::Parser;
-use std::time::Duration;
+use std::{net::Ipv4Addr, str::FromStr, time::Duration};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -27,7 +27,8 @@ impl ClientConfig {
             mac_address,
             client_port: 68,
             server_port: 67,
-            broadcast_address: "255.255.255.255".parse().unwrap(),
+            broadcast_address: Ipv4Addr::from_str("255.255.255.255")
+                .expect("Invalid hardcoded broadcast address"),
             initial_timeout: Duration::from_secs(5),
             request_timeout: Duration::from_secs(10),
         }

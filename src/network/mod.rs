@@ -1,3 +1,5 @@
+pub mod configurator;
+
 use std::{io, net::UdpSocket as StdUdpSocket};
 use thiserror::Error;
 use tokio::net::UdpSocket as TokioUdpSocket;
@@ -29,6 +31,9 @@ pub enum SocketError {
 
     #[error("Failed to convert socket to TokioUdpSocket")]
     ConvertToTokio(#[source] io::Error),
+
+    #[error("Failed to bind socket: {0}")]
+    BindFailed(String),
 
     #[allow(dead_code)]
     #[error("Binding to a specific device is not implemented on this platform")]
@@ -87,8 +92,29 @@ pub fn new_tokio_socket_bound_to_device(
     }
 
     // Bind the socket to the address and port.
-    let addr: std::net::SocketAddr = format!("0.0.0.0:{}", port).parse().unwrap();
-    socket2.bind(&addr.into()).map_err(SocketError::BindSocket)?;
+    let addr: std::net::SocketAddr = format!("0.0.0.0:{}", port)
+        .parse()
+        .map_err(|e| SocketError::BindFailed(format!("Invalid address format: {}", e)))?;
+    socket2
+        .bind(&addr.into())
+        .map_err(SocketError::BindSocket)?;
+
+    // Enable SO_REUSEPORT to allow multiple processes to bind to the same port
+    #[cfg(target_os = "linux")]
+    {
+        let ret = unsafe {
+            libc::setsockopt(
+                socket2.as_raw_fd(),
+                libc::SOL_SOCKET,
+                libc::SO_REUSEPORT,
+                &1i32 as *const i32 as *const libc::c_void,
+                std::mem::size_of::<i32>() as libc::socklen_t,
+            )
+        };
+        if ret < 0 {
+            tracing::warn!("Failed to set SO_REUSEPORT: {}", io::Error::last_os_error());
+        }
+    }
 
     // Convert to a standard socket, then into a Tokio socket.
     let std_socket: StdUdpSocket = socket2.into();

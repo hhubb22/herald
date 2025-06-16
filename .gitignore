@@ -1,2 +1,29 @@
-/target
+# Rust
+/target/
+Cargo.lock
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test artifacts
+/test_output/
+/coverage/
+
+# Temporary files
+tmp_*
 repomix-output.xml
+
+# Runtime
+*.pid
+*.sock

@@ -1,4 +1,7 @@
-#![allow(dead_code)]
+//! DHCP message construction utilities
+//!
+//! This module provides functions for building DHCPv4 protocol messages
+//! including DISCOVER and REQUEST packets with proper options.
 
 use bytes::{BufMut as _, Bytes, BytesMut};
 use dhcproto::{
@@ -58,7 +61,8 @@ pub fn build_dhcp_request(
         .set_chaddr(mac_addr)
         .set_htype(v4::HType::Eth)
         .set_xid(xid)
-        .set_ciaddr(std::net::Ipv4Addr::UNSPECIFIED); // Client IP, 0.0.0.0 as it's not confirmed
+        .set_ciaddr(std::net::Ipv4Addr::UNSPECIFIED) // Client IP, 0.0.0.0 as it's not confirmed
+        .set_flags(v4::Flags::default().set_broadcast()); // Request broadcast reply
 
     // DHCP Message Type - REQUEST (3)
     msg.opts_mut()
