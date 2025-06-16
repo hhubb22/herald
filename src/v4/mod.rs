@@ -8,5 +8,3 @@
 pub mod handler;
 pub mod message;
 
-pub use handler::DhcpV4Handler;
-pub use message::{build_dhcp_discover, build_dhcp_request};

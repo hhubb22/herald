@@ -92,9 +92,9 @@ pub fn new_tokio_socket_bound_to_device(
     }
 
     // Bind the socket to the address and port.
-    let addr: std::net::SocketAddr = format!("0.0.0.0:{}", port)
+    let addr: std::net::SocketAddr = format!("0.0.0.0:{port}")
         .parse()
-        .map_err(|e| SocketError::BindFailed(format!("Invalid address format: {}", e)))?;
+        .map_err(|e| SocketError::BindFailed(format!("Invalid address format: {e}")))?;
     socket2
         .bind(&addr.into())
         .map_err(SocketError::BindSocket)?;

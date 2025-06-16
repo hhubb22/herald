@@ -38,7 +38,9 @@ pub struct Lease {
     pub subnet_mask: Option<Ipv4Addr>,
     pub routers: Option<Vec<Ipv4Addr>>,
     pub dns_servers: Option<Vec<Ipv4Addr>>,
+    #[allow(dead_code)]
     pub lease_duration: Option<Duration>,
+    #[allow(dead_code)]
     pub server_identifier: Option<Ipv4Addr>,
 }
 

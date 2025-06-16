@@ -14,7 +14,7 @@ use clap::Parser as _;
 use tokio::fs;
 
 async fn get_mac_address(interface: &str) -> Result<bytes::Bytes, HeraldError> {
-    let path = format!("/sys/class/net/{}/address", interface);
+    let path = format!("/sys/class/net/{interface}/address");
     let mac_str = fs::read_to_string(&path)
         .await
         .map_err(|_| HeraldError::InterfaceInvalid(interface.to_string()))?;
@@ -38,7 +38,7 @@ async fn main() {
         Ok(mac) => {
             let mac_str = mac
                 .iter()
-                .map(|b| format!("{:02x}", b))
+                .map(|b| format!("{b:02x}"))
                 .collect::<Vec<_>>()
                 .join(":");
             tracing::info!(

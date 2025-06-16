@@ -42,7 +42,7 @@ impl DhcpV4Handler {
         self.state = DhcpV4State::Selecting;
         let discover_packet = build_dhcp_discover(&self.mac_address, self.xid)?;
         let broadcast_addr = SocketAddr::from_str("255.255.255.255:67")
-            .map_err(|e| HeraldError::Critical(format!("Invalid broadcast address: {}", e)))?;
+            .map_err(|e| HeraldError::Critical(format!("Invalid broadcast address: {e}")))?;
         Ok(Action::Send(discover_packet, broadcast_addr))
     }
 
@@ -72,12 +72,10 @@ impl DhcpV4Handler {
                             );
 
                             // Check if server identifier is present
-                            if let Some(server_id_opt) =
+                            if let Some(v4::DhcpOption::ServerIdentifier(server_ip)) =
                                 msg.opts().get(v4::OptionCode::ServerIdentifier)
                             {
-                                if let v4::DhcpOption::ServerIdentifier(server_ip) = server_id_opt {
-                                    tracing::info!("Server identifier: {}", server_ip);
-                                }
+                                tracing::info!("Server identifier: {}", server_ip);
                             }
 
                             self.offer = Some(msg);
@@ -134,10 +132,10 @@ impl DhcpV4Handler {
                 offered_ip,
                 server_id,
             )
-            .map_err(|e| HeraldError::Protocol(e))?;
+            .map_err(HeraldError::Protocol)?;
 
             let broadcast_addr = SocketAddr::from_str("255.255.255.255:67")
-                .map_err(|e| HeraldError::Critical(format!("Invalid broadcast address: {}", e)))?;
+                .map_err(|e| HeraldError::Critical(format!("Invalid broadcast address: {e}")))?;
             Ok(Action::Send(request_packet, broadcast_addr))
         } else {
             Err(HeraldError::Critical(
